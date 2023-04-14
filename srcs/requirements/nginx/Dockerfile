@@ -9,6 +9,9 @@ RUN mkdir -p /etc/nginx/ssl && \
     openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/nginx/ssl/inception.key -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=shabibol.42.fr/UID=shabibol" && \
     mkdir -p /var/run/nginx
 
+RUN rm /etc/nginx/sites-available/default
+RUN rm /etc/nginx/sites-enabled/default
+
 # Copy custom configuration file
 COPY conf/nginx.conf /etc/nginx/sites-enabled/shabibol.42.fr
 
