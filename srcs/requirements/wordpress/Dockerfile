@@ -1,30 +1,21 @@
 FROM debian:buster
 
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install curl mariadb-client php php7.3 php7.3-fpm php7.3-mysql php-common php7.3-cli php7.3-common php7.3-json php7.3-opcache php7.3-readline php-curl php-gd php-intl php-mbstring php-soap php-xml php-xmlrpc php-zip php7.3-imap gettext-base -y
 
-RUN apt-get -y install wget
+RUN mkdir -p /var/www/wordpress && \
+    mkdir -p /run/php && \
+    mkdir -p /var/www/wordpress ; mkdir -p /run/php && \
+    curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp
 
-RUN apt-get install -y php7.3\
-	php-fpm\
-	php-mysql\
-	mariadb-client \
-	curl \
-	unzip
-	
+COPY ./conf/php.conf /etc/php/7.3/fpm/pool.d/www.conf
+COPY ./conf/script_wp.sh /
+WORKDIR /var/www/wordpress
 
-RUN wget https://fr.wordpress.org/wordpress-6.0-fr_FR.tar.gz -P /var/www
-RUN cd /var/www && tar -xzf wordpress-6.0-fr_FR.tar.gz && rm wordpress-6.0-fr_FR.tar.gz
+RUN wp core download --allow-root
 
-COPY	./conf/php.conf			/etc/php/7.3/fpm/pool.d/www.conf
+ENTRYPOINT ["bash", "/auto_config.sh"]
 
-RUN	chown -R root:root /var/www/wordpress
-
-RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-
-RUN chmod +x wp-cli.phar
-RUN mv wp-cli.phar /usr/local/bin/wp
-
-COPY conf/auto_config.sh auto_config.sh
-
-ENTRYPOINT ["bash", "-x", "auto_config.sh"]
-
+CMD ["php-fpm7.3", "-F"]

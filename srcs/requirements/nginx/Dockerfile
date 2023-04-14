@@ -1,22 +1,19 @@
-FROM debian:latest
+FROM debian:buster
 
 # Install Nginx and OpenSSL packages
-RUN apt-get update && \
-    apt-get install -y nginx openssl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt update && \
+    apt install nginx vim curl openssl -y
 
 # Generate SSL certificate and key files
-RUN openssl genrsa -out /etc/ssl/private/server.key 2048 && \
-    openssl req -new -key /etc/ssl/private/server.key -out /tmp/cert.csr -subj '/CN=localhost' && \
-    openssl x509 -req -days 365 -in /tmp/cert.csr -signkey /etc/ssl/private/server.key -out /etc/ssl/certs/server.crt && \
-    rm /tmp/cert.csr
+RUN mkdir -p /etc/nginx/ssl && \
+    openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/nginx/ssl/inception.key -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=shabibol.42.fr/UID=shabibol" && \
+    mkdir -p /var/run/nginx
 
 # Copy custom configuration file
-COPY conf/nginx.conf /etc/nginx/nginx.conf
+COPY conf/nginx.conf /etc/nginx/sites-enabled/shabibol.42.fr
 
-# Expose port 443 for HTTPS traffic
-EXPOSE 443
+RUN chmod 755 /var/www/html && \
+    chown -R www-data:www-data /var/www/html
 
 # Start Nginx when container starts
-CMD ["nginx", "-g", "daemon off;"]
+CMD [ "nginx", "-g", "daemon off;" ]

@@ -2,13 +2,15 @@ FROM debian:buster
 
 RUN apt-get update && apt-get upgrade -y
 
-RUN apt-get install mariadb-server -y
+RUN apt-get install mariadb-server mariadb-client curl gettext-base -y
 
 COPY conf/my.cnf	/etc/mysql/mariadb.conf.d/50-server.cnf
 
-COPY conf/auto_config.sh /auto_config.sh
+COPY ./tools/script_mdb.sh /
 
-EXPOSE 3306
+COPY ./tools/init.sql /
 
-ENTRYPOINT ["mysqld_safe"]
+ENTRYPOINT ["bash", "script_mdb.sh"]
+
+CMD ["/usr/bin/mysqld_safe"]
 
